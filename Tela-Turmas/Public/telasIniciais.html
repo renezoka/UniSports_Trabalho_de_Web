@@ -245,20 +245,32 @@
         }
 
         function login() {
-            const email = document.getElementById('login-email').value;
-            const password = document.getElementById('login-password').value;
-            const errorDiv = document.getElementById('login-error');
+    const username = document.getElementById('login-email').value;
+    const password = document.getElementById('login-password').value;
+    const errorDiv = document.getElementById('login-error');
 
-            // Simulação de verificação de senha incorreta
-            if (password !== 'senha123') {
-                errorDiv.textContent = 'Senha incorreta. Por favor, tente novamente.';
-                return;
-            }
-
-            // Simulação de login bem-sucedido
-            alert('Login realizado com sucesso! (Redirecionaria para a tela principal)');
-            // Aqui você redirecionaria o usuário para a tela principal do seu app
+    fetch('http://localhost:3001/login', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ username, password })
+    })
+    .then(res => res.json())
+    .then(data => {
+        if (data.message === 'Login bem-sucedido.') {
+            alert('Login realizado com sucesso!');
+            // redirecionarParaTeste();
+        } else {
+            errorDiv.textContent = data.message;
         }
+    })
+    .catch(error => {
+        console.error('Erro ao fazer login:', error);
+        errorDiv.textContent = 'Erro ao tentar login.';
+    });
+}
+
 
         function forgotPassword() {
             const email = document.getElementById('forgot-email').value;
@@ -273,25 +285,49 @@
         }
 
         function register() {
-            const name = document.getElementById('register-name').value;
-            const email = document.getElementById('register-email').value;
-            const password = document.getElementById('register-password').value;
-            const confirmPassword = document.getElementById('confirm-password').value;
-            const errorDiv = document.getElementById('register-error');
+    const name = document.getElementById('register-name').value;
+    const email = document.getElementById('register-email').value;
+    const username = document.getElementById('register-username').value;
+    const password = document.getElementById('register-password').value;
+    const confirmPassword = document.getElementById('confirm-password').value;
+    const errorDiv = document.getElementById('register-error');
 
-            if (password !== confirmPassword) {
-                errorDiv.textContent = 'As senhas não coincidem.';
-                return;
-            }
+    if (password !== confirmPassword) {
+        errorDiv.textContent = 'As senhas não coincidem.';
+        return;
+    }
+
+    fetch('http://localhost:3001/register', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ name, email, username, password })
+    })
+    .then(res => res.json())
+    .then(data => {
+        if (data.message === 'Usuário cadastrado com sucesso!') {
+            alert('Cadastro realizado com sucesso! Faça login com sua nova conta.');
+            showLogin();
+        } else {
+            errorDiv.textContent = data.message;
+        }
+    })
+    .catch(error => {
+        console.error('Erro ao cadastrar:', error);
+        errorDiv.textContent = 'Erro ao tentar cadastrar.';
+    });
+}
+
 
             // Simulação de cadastro bem-sucedido
             alert('Cadastro realizado com sucesso! Faça login com sua nova conta.');
             showLogin();
-            redirecionarParaTeste();
+            //redirecionarParaTeste();
 
 
             // Aqui você enviaria os dados para o servidor para criar a conta
-        }
+        
 
         function redirecionarParaTeste() {
             window.location.href = "testeMa.html";

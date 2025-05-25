@@ -7,6 +7,8 @@ const User = require('./models/User');
 const app = express();
 const port = 3001; 
 
+const cors = require('cors');
+app.use(cors());
 
 mongoose.connect('mongodb+srv://reneshow:lKRwjaxZcHC0nLFb@unisports.sqnspo5.mongodb.net/?retryWrites=true&w=majority&appName=uniSPORTS', {
     dbName: 'unisports'
@@ -17,6 +19,12 @@ mongoose.connect('mongodb+srv://reneshow:lKRwjaxZcHC0nLFb@unisports.sqnspo5.mong
 app.use(bodyParser.json());
 app.use('/Public', express.static(path.join(__dirname, 'Public'))); 
 
+app.use(express.static(path.join(__dirname, 'Public')));
+
+// Rota padrão para servir o HTML
+app.get('/', (req, res) => {
+    res.sendFile(path.join(__dirname, 'Public', 'telasIniciais.html'));
+});
 
 app.post('/register', async (req, res) => {
     console.log('➡️ Dados recebidos para registro:', req.body);
