@@ -1,0 +1,314 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>uniSPORT - Autenticação</title>
+    <style>
+        body {
+            font-family: sans-serif;
+            background-color: #1a237e; /* Azul escuro */
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+        }
+
+        .container {
+            background-color: #fff; /* Branco */
+            border-radius: 8px;
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.2);
+            padding: 30px;
+            width: 400px;
+            max-width: 90%;
+        }
+
+        h1 {
+            color: #1a237e;
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        .logo-accent {
+            color: #00bcd4; /* Um tom de azul mais claro para destaque */
+        }
+
+        h2 {
+            color: #3f51b5;
+            text-align: center;
+            margin-bottom: 25px;
+        }
+
+        .form-container {
+            display: none;
+        }
+
+        .form-container.active {
+            display: block;
+        }
+
+        .input-group {
+            margin-bottom: 20px;
+        }
+
+        .input-group label {
+            display: block;
+            color: #555;
+            margin-bottom: 5px;
+        }
+
+        .input-group input[type="text"],
+        .input-group input[type="email"],
+        .input-group input[type="password"] {
+            width: calc(100% - 22px);
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            font-size: 16px;
+        }
+
+        .input-group input:focus {
+            outline: none;
+            border-color: #00bcd4;
+            box-shadow: 0 0 5px rgba(0, 188, 212, 0.5);
+        }
+
+        .password-toggle {
+            position: absolute;
+            right: 10px;
+            top: 50%;
+            transform: translateY(-50%);
+            cursor: pointer;
+            color: #777;
+            font-size: 14px;
+        }
+
+        .btn-primary {
+            background-color: #1a237e;
+            color: #fff;
+            padding: 12px 20px;
+            border: none;
+            border-radius: 4px;
+            font-size: 18px;
+            cursor: pointer;
+            width: 100%;
+            transition: background-color 0.3s ease;
+        }
+
+        .btn-primary:hover {
+            background-color: #3f51b5;
+        }
+
+        .links {
+            text-align: center;
+            margin-top: 20px;
+        }
+
+        .links a {
+            color: #00bcd4;
+            text-decoration: none;
+            margin: 0 10px;
+        }
+
+        .links a:hover {
+            text-decoration: underline;
+        }
+
+        .error-message {
+            color: #d32f2f;
+            background-color: #ffebee;
+            padding: 10px;
+            border-radius: 4px;
+            margin-top: 15px;
+            text-align: center;
+        }
+
+        .success-message {
+            color: #4caf50;
+            background-color: #e8f5e9;
+            padding: 10px;
+            border-radius: 4px;
+            margin-top: 15px;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div id="login-container" class="form-container active">
+            <h1>uni<span class="logo-accent">SPORT</span></h1>
+            <h2>Entrar</h2>
+            <div class="input-group">
+                <label for="login-email">E-mail ou Usuário:</label>
+                <input type="text" id="login-email" name="login-email">
+            </div>
+            <div class="input-group">
+                <label for="login-password">Senha:</label>
+                <input type="password" id="login-password" name="login-password">
+                <span class="password-toggle" onclick="togglePassword('login-password')">Mostrar</span>
+            </div>
+            <button class="btn-primary" onclick="login()">Entrar</button>
+            <p class="links">
+                <a href="#" onclick="showForgotPassword()">Esqueci minha senha?</a> |
+                <a href="#" onclick="showRegister()">Cadastrar</a>
+            </p>
+            <div id="login-error" class="error-message"></div>
+        </div>
+
+        <div id="forgot-password-container" class="form-container">
+            <h1>uni<span class="logo-accent">SPORT</span></h1>
+            <h2>Recuperar Senha</h2>
+            <div class="input-group">
+                <label for="forgot-email">Seu e-mail:</label>
+                <input type="email" id="forgot-email" name="forgot-email">
+            </div>
+            <button class="btn-primary" onclick="forgotPassword()">Enviar link de recuperação</button>
+            <p class="links">
+                <a href="#" onclick="showLogin()">Voltar para o Login</a>
+            </p>
+            <div id="forgot-message" class="success-message"></div>
+        </div>
+
+        <div id="register-container" class="form-container">
+            <h1>uni<span class="logo-accent">SPORT</span></h1>
+            <h2>Criar sua conta</h2>
+            <div class="input-group">
+                <label for="register-name">Nome completo:</label>
+                <input type="text" id="register-name" name="register-name">
+            </div>
+            <div class="input-group">
+                <label for="register-email">E-mail:</label>
+                <input type="email" id="register-email" name="register-email">
+            </div>
+            <div class="input-group">
+                <label for="register-username">Nome de usuário (opcional):</label>
+                <input type="text" id="register-username" name="register-username">
+            </div>
+            <div class="input-group">
+                <label for="register-password">Senha:</label>
+                <input type="password" id="register-password" name="register-password">
+                <span class="password-toggle" onclick="togglePassword('register-password')">Mostrar</span>
+            </div>
+            <div class="input-group">
+                <label for="confirm-password">Confirmar senha:</label>
+                <input type="password" id="confirm-password" name="confirm-password">
+                <span class="password-toggle" onclick="togglePassword('confirm-password')">Mostrar</span>
+            </div>
+            <button class="btn-primary" onclick="register()">Cadastrar</button>
+            <p class="links">
+                <a href="#" onclick="showLogin()">Já tem uma conta? Entrar</a>
+            </p>
+            <div id="register-error" class="error-message"></div>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            showLogin(); // Mostrar a tela de login inicialmente
+        });
+
+        function showLogin() {
+            document.getElementById('login-container').classList.add('active');
+            document.getElementById('forgot-password-container').classList.remove('active');
+            document.getElementById('register-container').classList.remove('active');
+            clearErrors();
+            clearMessages();
+        }
+
+        function showForgotPassword() {
+            document.getElementById('login-container').classList.remove('active');
+            document.getElementById('forgot-password-container').classList.add('active');
+            document.getElementById('register-container').classList.remove('active');
+            clearErrors();
+            clearMessages();
+        }
+
+        function showRegister() {
+            document.getElementById('login-container').classList.remove('active');
+            document.getElementById('forgot-password-container').classList.remove('active');
+            document.getElementById('register-container').classList.add('active');
+            clearErrors();
+            clearMessages();
+        }
+
+        function togglePassword(inputId) {
+            const passwordInput = document.getElementById(inputId);
+            const toggleButton = passwordInput.nextElementSibling;
+            if (passwordInput.type === 'password') {
+                passwordInput.type = 'text';
+                toggleButton.textContent = 'Ocultar';
+            } else {
+                passwordInput.type = 'password';
+                toggleButton.textContent = 'Mostrar';
+            }
+        }
+
+        function login() {
+            const email = document.getElementById('login-email').value;
+            const password = document.getElementById('login-password').value;
+            const errorDiv = document.getElementById('login-error');
+
+            // Simulação de verificação de senha incorreta
+            if (password !== 'senha123') {
+                errorDiv.textContent = 'Senha incorreta. Por favor, tente novamente.';
+                return;
+            }
+
+            // Simulação de login bem-sucedido
+            alert('Login realizado com sucesso! (Redirecionaria para a tela principal)');
+            // Aqui você redirecionaria o usuário para a tela principal do seu app
+        }
+
+        function forgotPassword() {
+            const email = document.getElementById('forgot-email').value;
+            const messageDiv = document.getElementById('forgot-message');
+
+            // Simulação de envio de link de recuperação
+            if (email) {
+                messageDiv.textContent = `Um link de recuperação foi enviado para o e-mail: ${email}`;
+            } else {
+                messageDiv.textContent = 'Por favor, insira seu e-mail.';
+            }
+        }
+
+        function register() {
+            const name = document.getElementById('register-name').value;
+            const email = document.getElementById('register-email').value;
+            const password = document.getElementById('register-password').value;
+            const confirmPassword = document.getElementById('confirm-password').value;
+            const errorDiv = document.getElementById('register-error');
+
+            if (password !== confirmPassword) {
+                errorDiv.textContent = 'As senhas não coincidem.';
+                return;
+            }
+
+            // Simulação de cadastro bem-sucedido
+            alert('Cadastro realizado com sucesso! Faça login com sua nova conta.');
+            showLogin();
+            redirecionarParaTeste();
+
+
+            // Aqui você enviaria os dados para o servidor para criar a conta
+        }
+
+        function redirecionarParaTeste() {
+            window.location.href = "testeMa.html";
+        }
+
+        function clearErrors() {
+            const loginError = document.getElementById('login-error');
+            if (loginError) loginError.textContent = '';
+
+            const registerError = document.getElementById('register-error');
+            if (registerError) registerError.textContent = '';
+        }
+
+        function clearMessages() {
+            const forgotMessage = document.getElementById('forgot-message');
+            if (forgotMessage) forgotMessage.textContent = '';
+        }
+    </script>
+</body>
+</html>
