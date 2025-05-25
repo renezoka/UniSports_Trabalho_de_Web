@@ -1,0 +1,95 @@
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        showLogin(); // Mostrar a tela de login inicialmente
+    });
+
+    function showLogin() {
+        document.getElementById('login-container').classList.add('active');
+        document.getElementById('forgot-password-container').classList.remove('active');
+        document.getElementById('register-container').classList.remove('active');
+        clearErrors();
+        clearMessages();
+    }
+
+    function showForgotPassword() {
+        document.getElementById('login-container').classList.remove('active');
+        document.getElementById('forgot-password-container').classList.add('active');
+        document.getElementById('register-container').classList.remove('active');
+        clearErrors();
+        clearMessages();
+    }
+
+    function showRegister() {
+        document.getElementById('login-container').classList.remove('active');
+        document.getElementById('forgot-password-container').classList.remove('active');
+        document.getElementById('register-container').classList.add('active');
+        clearErrors();
+        clearMessages();
+    }
+
+    function togglePassword(inputId) {
+        const passwordInput = document.getElementById(inputId);
+        const toggleButton = passwordInput.nextElementSibling;
+        if (passwordInput.type === 'password') {
+            passwordInput.type = 'text';
+            toggleButton.textContent = 'Ocultar';
+        } else {
+            passwordInput.type = 'password';
+            toggleButton.textContent = 'Mostrar';
+        }
+    }
+
+    function login() {
+        const email = document.getElementById('login-email').value;
+        const password = document.getElementById('login-password').value;
+        const errorDiv = document.getElementById('login-error');
+
+        if (password !== 'senha123') {
+            errorDiv.textContent = 'Senha incorreta. Por favor, tente novamente.';
+            return;
+        }
+
+        // Redirecionamento para a próxima página após login
+        window.location.href = "aulas-esportes.html"; // <- nome do seu segundo arquivo HTML
+    }
+
+    function forgotPassword() {
+        const email = document.getElementById('forgot-email').value;
+        const messageDiv = document.getElementById('forgot-message');
+
+        if (email) {
+            messageDiv.textContent = `Um link de recuperação foi enviado para o e-mail: ${email}`;
+        } else {
+            messageDiv.textContent = 'Por favor, insira seu e-mail.';
+        }
+    }
+
+    function register() {
+        const name = document.getElementById('register-name').value;
+        const email = document.getElementById('register-email').value;
+        const password = document.getElementById('register-password').value;
+        const confirmPassword = document.getElementById('confirm-password').value;
+        const errorDiv = document.getElementById('register-error');
+
+        if (password !== confirmPassword) {
+            errorDiv.textContent = 'As senhas não coincidem.';
+            return;
+        }
+
+        alert('Cadastro realizado com sucesso! Faça login com sua nova conta.');
+        showLogin();
+    }
+
+    function clearErrors() {
+        const loginError = document.getElementById('login-error');
+        if (loginError) loginError.textContent = '';
+
+        const registerError = document.getElementById('register-error');
+        if (registerError) registerError.textContent = '';
+    }
+
+    function clearMessages() {
+        const forgotMessage = document.getElementById('forgot-message');
+        if (forgotMessage) forgotMessage.textContent = '';
+    }
+</script>

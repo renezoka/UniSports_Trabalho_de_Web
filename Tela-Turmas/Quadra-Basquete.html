@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <title>Quadra de Basquete</title>
+  <link rel="stylesheet" href="styleBasq.css">
+</head>
+<body>
+  <div class="container">
+    <!-- QUADRA COM 11 BOLAS -->
+    <div class="quadra" id="quadra">
+      <div class="bola" styleBasq="left: 20px; top: 20px;"><img src="https://via.placeholder.com/50" alt="1"></div>
+      <div class="bola" styleBasq="left: 80px; top: 20px;"><img src="https://via.placeholder.com/50" alt="2"></div>
+      <div class="bola" styleBasq="left: 140px; top: 20px;"><img src="https://via.placeholder.com/50" alt="3"></div>
+      <div class="bola" styleBasq="left: 200px; top: 20px;"><img src="https://via.placeholder.com/50" alt="4"></div>
+      <div class="bola" styleBasq="left: 260px; top: 20px;"><img src="https://via.placeholder.com/50" alt="5"></div>
+    </div>
+
+    <!-- BANCO COM TÍTULOS E 11/7 BOLAS -->
+    <div class="bola-banco">
+      <!-- Grupo da esquerda com 11 bolas -->
+      <div class="grupo-com-titulo">
+        <div class="titulo">Em quadra</div>
+        <div class="grupo-bolas">
+          <div class="bola-estatica"><img src="https://via.placeholder.com/50" alt="1"></div>
+          <div class="bola-estatica"><img src="https://via.placeholder.com/50" alt="2"></div>
+          <div class="bola-estatica"><img src="https://via.placeholder.com/50" alt="3"></div>
+          <div class="bola-estatica"><img src="https://via.placeholder.com/50" alt="4"></div>
+          <div class="bola-estatica"><img src="https://via.placeholder.com/50" alt="5"></div>
+          <div class="bola-estatica"><img src="https://via.placeholder.com/50" alt="6"></div>
+          <div class="bola-estatica"><img src="https://via.placeholder.com/50" alt="7"></div>
+          <div class="bola-estatica"><img src="https://via.placeholder.com/50" alt="8"></div>
+          <div class="bola-estatica"><img src="https://via.placeholder.com/50" alt="9"></div>
+          <div class="bola-estatica"><img src="https://via.placeholder.com/50" alt="10"></div>
+          <div class="bola-estatica"><img src="https://via.placeholder.com/50" alt="11"></div>
+        </div>
+      </div>
+
+      <!-- Separador -->
+      <div class="separador"></div>
+
+      <!-- Grupo da direita com 7 bolas -->
+      <div class="grupo-com-titulo">
+        <div class="titulo">Reservas</div>
+        <div class="grupo-bolas">
+          <div class="bola-estatica"><img src="https://via.placeholder.com/50" alt="R1"></div>
+          <div class="bola-estatica"><img src="https://via.placeholder.com/50" alt="R2"></div>
+          <div class="bola-estatica"><img src="https://via.placeholder.com/50" alt="R3"></div>
+          <div class="bola-estatica"><img src="https://via.placeholder.com/50" alt="R4"></div>
+          <div class="bola-estatica"><img src="https://via.placeholder.com/50" alt="R5"></div>
+          <div class="bola-estatica"><img src="https://via.placeholder.com/50" alt="R6"></div>
+          <div class="bola-estatica"><img src="https://via.placeholder.com/50" alt="R7"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+
+
+   <!-- BOTÃO FLUTUANTE PARA MOSTRAR A SIDEBAR -->
+<button id="toggleSidebar" class="toggle-btn">☰</button>
+
+<!-- SIDEBAR OCULTÁVEL -->
+<div class="sidebar" id="sidebar">
+  <button class="btn-incluir">Incluir jogador</button>
+  <button class="btn-visualizar">Visualizar Jogadores</button>
+  <button class="btn-editar">Alterar Jogador</button>
+  <button class="btn-deletar">Deletar Jogador</button>
+  <button class="btn-salvar">Salvar</button>
+  <button class="btn-voltar">Voltar</button>
+  <button class="btn-suporte">Suporte</button>
+  <button onclick="window.location.href='../Tela-Turmas/testeMa.html';">Sair</button>
+</div>
+
+
+<!-- CONTEÚDO PRINCIPAL -->
+<div class="container" id="mainContainer">
+  <!-- ... quadra e bolas aqui ... -->
+</div>
+
+<!-- MODAL DE INCLUSÃO -->
+<div id="modalIncluir" class="modal">
+  <div class="modal-content">
+    <span class="fechar-modal" id="fecharModal">&times;</span>
+    <h2>Incluir Jogador</h2>
+    
+    <!-- Formulário para incluir jogador -->
+    <form id="formIncluir">
+      <label for="nomeJogador">Nome</label>
+      <input type="text" id="nomeJogador" placeholder="Nome do jogador" required>
+
+      <label for="posicaoJogador">Posição</label>
+      <input type="text" id="posicaoJogador" placeholder="Posição do jogador" required>
+
+      <label for="fotoJogador">Foto</label>
+      <input type="file" id="fotoJogador" accept="image/*" required>
+
+      <button type="submit">Adicionar Jogador</button>
+    </form>
+  </div>
+</div>
+
+<div id="modalEditar" class="modal">
+  <div class="modal-content">
+    <span class="fechar-modal" id="fecharModalEditar">&times;</span>
+    <h2>Alterar Jogador</h2>
+
+    <form id="formEditar">
+      <label for="editarNome">Nome</label>
+      <input type="text" id="editarNome" required>
+
+      <label for="editarPosicao">Posição</label>
+      <input type="text" id="editarPosicao" required>
+
+      <button type="submit">Salvar Alterações</button>
+    </form>
+  </div>
+</div>
+
+<!-- Lista de jogadores -->
+<div id="listaJogadores" class="modal">
+  <div class="modal-content">
+    <span class="fechar-modal" id="fecharModalLista">&times;</span>
+    <h2>Jogadores</h2>
+    <ul id="jogadoresUl" style="text-align: left;"></ul>
+  </div>
+</div>
+
+
+  <script src="scriptBasq.js"></script>
+</body>
+</html>
