@@ -23,7 +23,7 @@ app.use(express.static(path.join(__dirname, 'Public')));
 
 // Rota padrão para servir o HTML
 app.get('/', (req, res) => {
-    res.sendFile(path.join(__dirname, 'Public', 'telasIniciais.html'));
+    res.sendFile(path.join(__dirname, 'Tela-Turmas', 'Public', 'telasIniciais.html'));
 });
 
 app.post('/register', async (req, res) => {
