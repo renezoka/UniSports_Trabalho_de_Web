@@ -303,84 +303,118 @@
     }
 
     // Função para criar uma nova turma
-    async function createClass() {
-        const newClassType = document.getElementById('newClassType').value;
+async function createClass() {
+    const newClassType = document.getElementById('newClassType').value;
+    const userEmail = localStorage.getItem('userEmail');
 
-        if (!newClassType) {
-            alert('Por favor, selecione um tipo de turma.');
-            return;
-        }
-
-        if (!currentUserId) {
-            alert('Usuário não identificado. Faça login novamente.');
-            return;
-        }
-
-        try {
-            const classNumber = generateClassNumber();
-            
-            const response = await fetch('/api/turmas', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({
-                    name: newClassType,
-                    type: newClassType,
-                    number: classNumber,
-                    createdBy: currentUserId
-                })
-            });
-
-            if (!response.ok) {
-                throw new Error('Erro ao criar turma');
-            }
-
-            const newTurma = await response.json();
-            
-            // Associar a turma ao usuário
-            await associateUserWithTurma(currentUserId, newTurma._id);
-
-            // Criar o card da turma
-            createClassCard(newTurma);
-
-            // Fechar o modal de criação
-            const createModal = bootstrap.Modal.getInstance(document.getElementById('createModal'));
-            createModal.hide();
-
-            // Limpar a seleção do dropdown
-            document.getElementById('newClassType').value = '';
-
-            // Atualizar as opções dos selects
-            updateClassSelectOptions();
-            updateClassListModal();
-
-        } catch (error) {
-            console.error('Erro ao criar turma:', error);
-            alert('Erro ao criar turma: ' + error.message);
-        }
+    // Validações iniciais reforçadas
+    if (!newClassType || newClassType.trim() === '') {
+        showAlert('Por favor, selecione um tipo de turma válido.', 'warning');
+        return;
     }
 
-    // Função para associar usuário à turma
-    async function associateUserWithTurma(userId, turmaId) {
-        try {
-            const response = await fetch(`/api/users/${userId}/turmas`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({ turmaId })
-            });
-
-            if (!response.ok) {
-                throw new Error('Erro ao associar turma ao usuário');
-            }
-        } catch (error) {
-            console.error('Erro ao associar turma:', error);
-            throw error;
-        }
+    if (!userEmail || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(userEmail)) {
+        showAlert('Sessão inválida. Faça login novamente.', 'error');
+        clearUserSession();
+        return;
     }
 
+    try {
+        const classNumber = generateClassNumber();
+        const payload = {
+            name: newClassType.trim(),
+            type: newClassType.trim(),
+            number: classNumber,
+            createdBy: userEmail
+        };
+
+        // Mostra indicador de carregamento
+        const submitBtn = document.querySelector('#createModal .modal-footer button[type="button"]');
+        submitBtn.disabled = true;
+        submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Criando...';
+
+        const response = await fetch('http://localhost:3001/api/turmas', {
+            method: 'POST',
+            headers: { 
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${localStorage.getItem('token') || ''}`
+            },
+            body: JSON.stringify(payload)
+        });
+
+        // Processamento de resposta melhorado
+        const responseData = await processResponse(response);
+
+        if (!response.ok) {
+            throw new Error(responseData.message || `Erro ${response.status}: ${response.statusText}`);
+        }
+
+        // Atualização otimizada da interface
+        await Promise.all([
+            createClassCard(responseData),
+            updateClassSelectOptions(),
+            updateClassListModal()
+        ]);
+
+        // Feedback visual de sucesso
+        showAlert('Turma criada com sucesso!', 'success');
+        
+        // Fecha o modal de forma limpa
+        const modal = bootstrap.Modal.getInstance(document.getElementById('createModal'));
+        if (modal) {
+            modal.hide();
+            modal._element.addEventListener('hidden.bs.modal', () => {
+                document.getElementById('newClassType').value = '';
+            }, { once: true });
+        }
+
+    } catch (error) {
+        console.error('Erro detalhado:', error);
+        showAlert(`Falha ao criar turma: ${error.message}`, 'error');
+    } finally {
+        // Restaura o botão
+        const submitBtn = document.querySelector('#createModal .modal-footer button[type="button"]');
+        if (submitBtn) {
+            submitBtn.disabled = false;
+            submitBtn.textContent = 'Criar Turma';
+        }
+    }
+}
+
+// Funções auxiliares adicionais
+async function processResponse(response) {
+    const contentType = response.headers.get('content-type');
+    
+    if (contentType && contentType.includes('application/json')) {
+        return await response.json();
+    }
+    
+    return { message: await response.text() };
+}
+
+function showAlert(message, type = 'info') {
+    const alertDiv = document.createElement('div');
+    alertDiv.className = `alert alert-${type} alert-dismissible fade show`;
+    alertDiv.role = 'alert';
+    alertDiv.innerHTML = `
+        ${message}
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    `;
+    
+    const container = document.getElementById('alerts-container') || document.body;
+    container.prepend(alertDiv);
+    
+    setTimeout(() => {
+        alertDiv.classList.remove('show');
+        setTimeout(() => alertDiv.remove(), 150);
+    }, 5000);
+}
+
+function clearUserSession() {
+    localStorage.removeItem('userEmail');
+    localStorage.removeItem('token');
+    window.location.href = '/login.html';
+}
     // Função para criar o card da turma
     function createClassCard(turma) {
         const card = document.createElement('div');

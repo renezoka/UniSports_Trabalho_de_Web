@@ -1,14 +1,26 @@
 const mongoose = require('mongoose');
 
 const turmaSchema = new mongoose.Schema({
-    name: { type: String, required: true },
-    type: { type: String, required: true },
-    number: { type: String, required: true },
-    period: { type: String, default: "2025.1" },
-    createdAt: { type: Date, default: Date.now },
-    createdBy: {  // Adicionei esse campo para saber quem criou a turma
-        type: mongoose.Schema.Types.ObjectId,
-        ref: 'User'
+    name: {
+        type: String,
+        required: true
+    },
+    type: {
+        type: String,
+        required: true
+    },
+    number: {
+        type: String,
+        required: true
+    },
+    createdAt: {
+        type: Date,
+        default: Date.now
+    },
+    // Isso está correto para armazenar o e-mail como string
+    createdBy: {
+        type: String,
+        required: true
     }
 });
 
