@@ -233,6 +233,22 @@
     // Variáveis globais para o perfil do treinador
     let trainerName = "Nome da Pessoa";
     let trainerImage = "https://via.placeholder.com/150";
+    let currentUserId = ""; // Adicionamos esta variável para armazenar o ID do usuário logado
+
+    // Ao carregar a página, verificamos se há um usuário logado
+    document.addEventListener('DOMContentLoaded', function() {
+        // Recupera os dados do usuário do sessionStorage
+        const userData = sessionStorage.getItem('userData');
+        if (userData) {
+            const user = JSON.parse(userData);
+            currentUserId = user._id;
+            trainerName = user.name;
+            document.getElementById('viewProfileName').value = trainerName;
+        }
+        
+        // Carregar as turmas do usuário
+        loadUserTurmas();
+    });
 
     // Função para exibir a pré-visualização da imagem de perfil no modal de edição
     document.getElementById('profileImage').addEventListener('change', function(event) {
@@ -274,12 +290,10 @@
     viewProfileModalElement.addEventListener('show.bs.modal', function (event) {
         document.getElementById('viewProfileName').value = trainerName;
         document.getElementById('viewProfileImage').src = trainerImage;
-        document.getElementById('viewProfileClassCount').textContent = `Total de turmas: ${classes.length}`;
+        // Atualizar contagem de turmas
+        const turmasCount = document.querySelectorAll('#classCardsContainer .card').length;
+        document.getElementById('viewProfileClassCount').textContent = `Total de turmas: ${turmasCount}`;
     });
-
-    // Array para armazenar as turmas (simulando um banco de dados)
-    let classes = [];
-    let classCounter = 0; // Contador para gerar IDs únicos para as turmas
 
     // Função para gerar um número de turma aleatório (letra + 3 números)
     function generateClassNumber() {
@@ -288,208 +302,326 @@
         return letter + "-" + numbers; // Concatenar como string
     }
 
-    // Função para criar um novo card de turma
-    function createClass() {
+    // Função para criar uma nova turma
+    async function createClass() {
         const newClassType = document.getElementById('newClassType').value;
 
-        if (newClassType) {
-            classCounter++;
-            const classId = `class-${classCounter}`;
-            const className = newClassType; // Por enquanto, o nome será o mesmo que o tipo
-            const classNumber = generateClassNumber(); // Gerar número da turma
-            classes.push({ id: classId, name: className, type: newClassType, number: classNumber });
+        if (!newClassType) {
+            alert('Por favor, selecione um tipo de turma.');
+            return;
+        }
 
-// Criar o elemento do card
-const card = document.createElement('div');
-card.className = 'card mb-4 shadow-sm bg-white rounded';
-card.style.width = '300px'; /* Largura fixa */
-card.dataset.classId = classId; // Armazenar o ID da turma no dataset do card
+        if (!currentUserId) {
+            alert('Usuário não identificado. Faça login novamente.');
+            return;
+        }
 
-// Criar a imagem do card (você pode querer mudar a src dependendo do tipo da turma)
-const image = document.createElement('img');
-image.className = 'card-img-top';
-image.alt = `${className} - ${classNumber}`;
-image.style.height = '150px'; // Altura fixa para as imagens
-image.style.objectFit = 'cover'; // Manter a proporção e cobrir o espaço
-if (newClassType === 'Futebol') {
-    image.src = 'https://www.appai.org.br/wp-content/uploads/2022/07/01-revista-appai-educar-dia-nacional-do-futebol-141.jpg';
-} else if (newClassType === 'Basquete') {
-    image.src = 'https://www.cnnbrasil.com.br/wp-content/uploads/sites/12/2024/07/Pre_Olimpico_de-_Basquete-Masculino_Brasil_vence_Filipinas_vai_a_final_e_fica_a_um_jogo_de_Paris-e1720273472112.jpg?w=886';
-} else {
-    image.src = 'https://via.placeholder.com/150/0000FF/FFFFFF?Text=' + newClassType; // Placeholder padrão
-}
+        try {
+            const classNumber = generateClassNumber();
+            
+            const response = await fetch('/api/turmas', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    name: newClassType,
+                    type: newClassType,
+                    number: classNumber,
+                    createdBy: currentUserId
+                })
+            });
 
-// Criar o corpo do card
-const cardBody = document.createElement('div');
-cardBody.className = 'card-body d-flex flex-column justify-content-between'; // Flexbox para alinhar o botão
+            if (!response.ok) {
+                throw new Error('Erro ao criar turma');
+            }
 
-// Criar o título do card
-const title = document.createElement('h5');
-title.className = 'card-title';
-title.textContent = `${className} - ${classNumber}`; // Incluir número no título
+            const newTurma = await response.json();
+            
+            // Associar a turma ao usuário
+            await associateUserWithTurma(currentUserId, newTurma._id);
 
-// Criar o texto do card
-const text = document.createElement('p');
-text.className = 'card-text';
-text.textContent = `2025.1`; // Texto fixo
+            // Criar o card da turma
+            createClassCard(newTurma);
 
-// Criar o link do card (você pode adicionar um evento de clique para alguma ação)
-const link = document.createElement('a');
-if(newClassType === 'Futebol'){
-    link.href = '../Tela-Turmas/Quadra_Futebol.html';
-}else if(newClassType === 'Basquete'){
-    link.href = '../Tela-Turmas/Quadra-Basquete.html';
-}
-link.className = 'btn btn-primary mt-2'; // Margem superior para separar do texto
-link.textContent = 'Ver Detalhes';
+            // Fechar o modal de criação
+            const createModal = bootstrap.Modal.getInstance(document.getElementById('createModal'));
+            createModal.hide();
 
+            // Limpar a seleção do dropdown
+            document.getElementById('newClassType').value = '';
 
-// Adicionar os elementos ao corpo do card
-cardBody.appendChild(title);
-cardBody.appendChild(text);
-cardBody.appendChild(link);
+            // Atualizar as opções dos selects
+            updateClassSelectOptions();
+            updateClassListModal();
 
-// Adicionar a imagem e o corpo ao card
-card.appendChild(image);
-card.appendChild(cardBody);
+        } catch (error) {
+            console.error('Erro ao criar turma:', error);
+            alert('Erro ao criar turma: ' + error.message);
+        }
+    }
 
-// Adicionar o card ao container
-const classCardsContainer = document.getElementById('classCardsContainer');
-classCardsContainer.appendChild(card);
+    // Função para associar usuário à turma
+    async function associateUserWithTurma(userId, turmaId) {
+        try {
+            const response = await fetch(`/api/users/${userId}/turmas`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ turmaId })
+            });
 
-// Fechar o modal de criação
-const createModal = bootstrap.Modal.getInstance(document.getElementById('createModal'));
-createModal.hide();
+            if (!response.ok) {
+                throw new Error('Erro ao associar turma ao usuário');
+            }
+        } catch (error) {
+            console.error('Erro ao associar turma:', error);
+            throw error;
+        }
+    }
 
-// Atualizar as opções dos selects nos modais de editar e excluir
-updateClassSelectOptions();
-updateClassListModal();
+    // Função para criar o card da turma
+    function createClassCard(turma) {
+        const card = document.createElement('div');
+        card.className = 'card mb-4 shadow-sm bg-white rounded';
+        card.style.width = '300px';
+        card.dataset.classId = turma._id;
 
-// Limpar a seleção do dropdown
-document.getElementById('newClassType').value = '';
-} else {
-alert('Por favor, selecione um tipo de turma.');
-}
-}
-
-// Função para atualizar as opções do select nos modais de editar e excluir
-function updateClassSelectOptions() {
-const editClassSelect = document.getElementById('editClassSelect');
-const deleteClassSelect = document.getElementById('deleteClassSelect');
-
-// Limpar as opções existentes
-editClassSelect.innerHTML = '<option value="">Selecione uma turma</option>';
-deleteClassSelect.innerHTML = '<option value="">Selecione uma turma</option>';
-
-classes.forEach(turma => {
-const optionEdit = document.createElement('option');
-optionEdit.value = turma.id;
-optionEdit.textContent = turma.name + " - " + turma.number; // Mostrar número na opção
-editClassSelect.appendChild(optionEdit);
-
-const optionDelete = document.createElement('option');
-optionDelete.value = turma.id;
-optionDelete.textContent = turma.name + " - " + turma.number; // Mostrar número na opção
-deleteClassSelect.appendChild(optionDelete);
-});
-}
-
-// Função para popular a lista de turmas no modal de listar
-function updateClassListModal() {
-const classList = document.getElementById('classList');
-classList.innerHTML = ''; // Limpar a lista
-
-classes.forEach(turma => {
-const listItem = document.createElement('li');
-listItem.className = 'list-group-item d-flex justify-content-between align-items-center';
-listItem.textContent = turma.name + " - " + turma.number; // Mostrar número na lista
-const badge = document.createElement('span');
-badge.className = 'badge bg-primary rounded-pill';
-badge.textContent = turma.type;
-listItem.appendChild(badge);
-classList.appendChild(listItem);
-});
-}
-
-// Chamar a função para atualizar as opções dos selects quando a página carregar (caso já haja alguma turma - por enquanto não há)
-updateClassSelectOptions();
-updateClassListModal();
-
-// Função para editar uma turma existente
-function editClass() {
-const editClassSelect = document.getElementById('editClassSelect');
-const editClassNameInput = document.getElementById('editClassName');
-const selectedClassId = editClassSelect.value;
-const newClassName = editClassNameInput.value;
-
-if (selectedClassId && newClassName) {
-const classIndex = classes.findIndex(turma => turma.id === selectedClassId);
-if (classIndex !== -1) {
-    classes[classIndex].name = newClassName;
-
-    // Atualizar o nome no card correspondente
-    const cardToUpdate = document.querySelector(`.card[data-class-id="${selectedClassId}"]`);
-    if (cardToUpdate) {
-        cardToUpdate.className = 'card mb-4 shadow-sm bg-white rounded';
-        cardToUpdate.style.width = '300px';
-        const image = cardToUpdate.querySelector('.card-img-top');
-        image.alt = newClassName + " - " + classes[classIndex].number;
+        // Criar a imagem do card
+        const image = document.createElement('img');
+        image.className = 'card-img-top';
+        image.alt = `${turma.name} - ${turma.number}`;
         image.style.height = '150px';
         image.style.objectFit = 'cover';
-        const title = cardToUpdate.querySelector('.card-title');
-        title.textContent = newClassName + " - " + classes[classIndex].number;
-        const text = cardToUpdate.querySelector('.card-text');
-        text.textContent = `2025.1`;
-        const link = cardToUpdate.querySelector('.btn');
+        
+        if (turma.type === 'Futebol') {
+            image.src = 'https://www.appai.org.br/wp-content/uploads/2022/07/01-revista-appai-educar-dia-nacional-do-futebol-141.jpg';
+        } else if (turma.type === 'Basquete') {
+            image.src = 'https://www.cnnbrasil.com.br/wp-content/uploads/sites/12/2024/07/Pre_Olimpico_de-_Basquete-Masculino_Brasil_vence_Filipinas_vai_a_final_e_fica_a_um_jogo_de_Paris-e1720273472112.jpg?w=886';
+        } else {
+            image.src = 'https://via.placeholder.com/150/0000FF/FFFFFF?Text=' + turma.type;
+        }
+
+        // Criar o corpo do card
+        const cardBody = document.createElement('div');
+        cardBody.className = 'card-body d-flex flex-column justify-content-between';
+
+        // Criar o título do card
+        const title = document.createElement('h5');
+        title.className = 'card-title';
+        title.textContent = `${turma.name} - ${turma.number}`;
+
+        // Criar o texto do card
+        const text = document.createElement('p');
+        text.className = 'card-text';
+        text.textContent = turma.period || '2025.1';
+
+        // Criar o link do card
+        const link = document.createElement('a');
+        if (turma.type === 'Futebol') {
+            link.href = '../Tela-Turmas/Quadra_Futebol.html';
+        } else if (turma.type === 'Basquete') {
+            link.href = '../Tela-Turmas/Quadra-Basquete.html';
+        }
         link.className = 'btn btn-primary mt-2';
+        link.textContent = 'Ver Detalhes';
+
+        // Adicionar os elementos ao card
+        cardBody.appendChild(title);
+        cardBody.appendChild(text);
+        cardBody.appendChild(link);
+        card.appendChild(image);
+        card.appendChild(cardBody);
+
+        // Adicionar o card ao container
+        document.getElementById('classCardsContainer').appendChild(card);
     }
 
-    // Atualizar as opções dos selects e a lista no modal
-    updateClassSelectOptions();
-    updateClassListModal();
+    // Função para carregar as turmas do usuário ao abrir a página
+    async function loadUserTurmas() {
+        if (!currentUserId) return;
 
-    // Fechar o modal de edição e limpar o input
-    const editModal = bootstrap.Modal.getInstance(document.getElementById('editModal'));
-    editModal.hide();
-    editClassNameInput.value = '';
-} else {
-    alert('Turma não encontrada.');
-}
-} else {
-alert('Por favor, selecione uma turma e digite um novo nome.');
-}
-}
+        try {
+            const response = await fetch(`/api/users/${currentUserId}/turmas`);
+            if (!response.ok) {
+                throw new Error('Erro ao carregar turmas');
+            }
 
-// Função para excluir uma turma
-function deleteClass(){
-const deleteClassSelect = document.getElementById('deleteClassSelect');
-const selectedClassId = deleteClassSelect.value;
+            const turmas = await response.json();
+            
+            // Limpar o container antes de adicionar as novas turmas
+            const container = document.getElementById('classCardsContainer');
+            container.innerHTML = '';
+            
+            // Adicionar cada turma como um card
+            turmas.forEach(turma => {
+                createClassCard(turma);
+            });
 
-if (selectedClassId) {
-const classIndex = classes.findIndex(turma => turma.id === selectedClassId);
-if (classIndex !== -1) {
-    classes.splice(classIndex, 1);
-
-    // Remover o card correspondente
-    const cardToRemove = document.querySelector(`.card[data-class-id="${selectedClassId}"]`);
-    if (cardToRemove) {
-        cardToRemove.remove();
+        } catch (error) {
+            console.error('Erro ao carregar turmas:', error);
+        }
     }
 
-    // Atualizar as opções dos selects e a lista no modal
-    updateClassSelectOptions();
-    updateClassListModal();
+    // Função para atualizar as opções do select nos modais de editar e excluir
+    async function updateClassSelectOptions() {
+        if (!currentUserId) return;
 
-    // Fechar o modal de exclusão
-    const deleteModal = bootstrap.Modal.getInstance(document.getElementById('deleteModal'));
-    deleteModal.hide();
-} else {
-    alert('Turma não encontrada.');
-}
-} else {
-alert('Por favor, selecione uma turma para excluir.');
-}
-}
+        try {
+            const response = await fetch(`/api/users/${currentUserId}/turmas`);
+            if (!response.ok) {
+                throw new Error('Erro ao carregar turmas');
+            }
+
+            const turmas = await response.json();
+            
+            const editClassSelect = document.getElementById('editClassSelect');
+            const deleteClassSelect = document.getElementById('deleteClassSelect');
+
+            // Limpar as opções existentes
+            editClassSelect.innerHTML = '<option value="">Selecione uma turma</option>';
+            deleteClassSelect.innerHTML = '<option value="">Selecione uma turma</option>';
+
+            // Adicionar as novas opções
+            turmas.forEach(turma => {
+                const optionEdit = document.createElement('option');
+                optionEdit.value = turma._id;
+                optionEdit.textContent = turma.name + " - " + turma.number;
+                editClassSelect.appendChild(optionEdit);
+
+                const optionDelete = document.createElement('option');
+                optionDelete.value = turma._id;
+                optionDelete.textContent = turma.name + " - " + turma.number;
+                deleteClassSelect.appendChild(optionDelete);
+            });
+
+        } catch (error) {
+            console.error('Erro ao carregar turmas:', error);
+        }
+    }
+
+    // Função para popular a lista de turmas no modal de listar
+    async function updateClassListModal() {
+        if (!currentUserId) return;
+
+        try {
+            const response = await fetch(`/api/users/${currentUserId}/turmas`);
+            if (!response.ok) {
+                throw new Error('Erro ao carregar turmas');
+            }
+
+            const turmas = await response.json();
+            const classList = document.getElementById('classList');
+            classList.innerHTML = ''; // Limpar a lista
+
+            turmas.forEach(turma => {
+                const listItem = document.createElement('li');
+                listItem.className = 'list-group-item d-flex justify-content-between align-items-center';
+                listItem.textContent = turma.name + " - " + turma.number;
+                const badge = document.createElement('span');
+                badge.className = 'badge bg-primary rounded-pill';
+                badge.textContent = turma.type;
+                listItem.appendChild(badge);
+                classList.appendChild(listItem);
+            });
+
+        } catch (error) {
+            console.error('Erro ao carregar turmas:', error);
+        }
+    }
+
+    // Função para editar uma turma existente
+    async function editClass() {
+        const editClassSelect = document.getElementById('editClassSelect');
+        const editClassNameInput = document.getElementById('editClassName');
+        const selectedClassId = editClassSelect.value;
+        const newClassName = editClassNameInput.value;
+
+        if (!selectedClassId || !newClassName) {
+            alert('Por favor, selecione uma turma e digite um novo nome.');
+            return;
+        }
+
+        try {
+            const response = await fetch(`/api/turmas/${selectedClassId}`, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ name: newClassName })
+            });
+
+            if (!response.ok) {
+                throw new Error('Erro ao editar turma');
+            }
+
+            const updatedTurma = await response.json();
+
+            // Atualizar o card correspondente
+            const cardToUpdate = document.querySelector(`.card[data-class-id="${selectedClassId}"]`);
+            if (cardToUpdate) {
+                const title = cardToUpdate.querySelector('.card-title');
+                title.textContent = `${newClassName} - ${updatedTurma.number}`;
+            }
+
+            // Fechar o modal de edição
+            const editModal = bootstrap.Modal.getInstance(document.getElementById('editModal'));
+            editModal.hide();
+            editClassNameInput.value = '';
+
+            // Atualizar as opções dos selects
+            updateClassSelectOptions();
+            updateClassListModal();
+
+        } catch (error) {
+            console.error('Erro ao editar turma:', error);
+            alert('Erro ao editar turma: ' + error.message);
+        }
+    }
+
+    // Função para excluir uma turma
+    async function deleteClass() {
+        const deleteClassSelect = document.getElementById('deleteClassSelect');
+        const selectedClassId = deleteClassSelect.value;
+
+        if (!selectedClassId) {
+            alert('Por favor, selecione uma turma para excluir.');
+            return;
+        }
+
+        if (!confirm('Tem certeza que deseja excluir esta turma?')) {
+            return;
+        }
+
+        try {
+            const response = await fetch(`/api/turmas/${selectedClassId}`, {
+                method: 'DELETE'
+            });
+
+            if (!response.ok) {
+                throw new Error('Erro ao excluir turma');
+            }
+
+            // Remover o card correspondente
+            const cardToRemove = document.querySelector(`.card[data-class-id="${selectedClassId}"]`);
+            if (cardToRemove) {
+                cardToRemove.remove();
+            }
+
+            // Fechar o modal de exclusão
+            const deleteModal = bootstrap.Modal.getInstance(document.getElementById('deleteModal'));
+            deleteModal.hide();
+
+            // Atualizar as opções dos selects
+            updateClassSelectOptions();
+            updateClassListModal();
+
+        } catch (error) {
+            console.error('Erro ao excluir turma:', error);
+            alert('Erro ao excluir turma: ' + error.message);
+        }
+    }
 </script>
 
 </body>
