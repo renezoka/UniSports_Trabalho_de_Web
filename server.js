@@ -10,9 +10,8 @@ const Turma = require('./models/Turma');
 const app = express();
 const port = 3001;
 
-// Enhanced configurations
 app.use(cors({
-  origin: 'http://localhost:3000',
+  origin: 'http://localhost:3001',
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE']
 }));
@@ -21,20 +20,21 @@ app.use(bodyParser.urlencoded({ extended: true }));
 app.use('/Public', express.static(path.join(__dirname, 'Public')));
 app.use(express.static(path.join(__dirname, 'Public')));
 
-// MongoDB connection with enhanced options
-mongoose.connect('mongodb+srv://reneshow:lKRwjaxZcHC0nLFb@unisports.sqnspo5.mongodb.net/unisports', {
-  useNewUrlParser: true,
-  useUnifiedTopology: true,
-  retryWrites: true,
-  w: 'majority'
-})
-.then(() => console.log('✅ Conectado ao MongoDB'))
-.catch(err => console.error('❌ Erro na conexão:', err));
+mongoose
+  .connect(
+    "mongodb+srv://reneshow:lKRwjaxZcHC0nLFb@unisports.sqnspo5.mongodb.net/unisports",
+    {
+      useNewUrlParser: true,
+      useUnifiedTopology: true,
+      retryWrites: true,
+      w: "majority",
+    }
+  )
+  .then(() => console.log("✅ Conectado ao MongoDB"))
+  .catch((err) => console.error("❌ Erro na conexão:", err));
 
-// Enable Mongoose debug mode to see queries
 mongoose.set('debug', true);
 
-// Validation utilities
 const validateEmail = (email) => {
   return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
 };
@@ -43,9 +43,7 @@ const validateObjectId = (id) => {
   return ObjectId.isValid(id) && (new ObjectId(id)).toString() === id;
 };
 
-// Enhanced error handling middleware
 app.use((req, res, next) => {
-  // Check for any ID parameters in the request
   if (req.params.id && !validateObjectId(req.params.id)) {
     return res.status(400).json({ 
       success: false,
@@ -56,14 +54,11 @@ app.use((req, res, next) => {
   next();
 });
 
-// API Routes
 
-// [1] User Registration - Enhanced
 app.post('/register', async (req, res) => {
   try {
     const { name, email, username, password } = req.body;
     
-    // Enhanced validation
     if (!email || !password || !username) {
       return res.status(400).json({ 
         success: false,
@@ -79,7 +74,6 @@ app.post('/register', async (req, res) => {
       });
     }
 
-    // Check for existing user more efficiently
     const existingUser = await User.findOne({ 
       $or: [{ email }, { username }] 
     }).select('email username');
@@ -96,7 +90,6 @@ app.post('/register', async (req, res) => {
     const newUser = new User({ name, email, username, password });
     await newUser.save();
     
-    // Don't send password back
     const userResponse = newUser.toObject();
     delete userResponse.password;
 
@@ -116,7 +109,6 @@ app.post('/register', async (req, res) => {
   }
 });
 
-// [2] Login - Enhanced with basic security
 app.post('/login', async (req, res) => {
   try {
     const { username, password } = req.body;
@@ -139,7 +131,6 @@ app.post('/login', async (req, res) => {
       });
     }
 
-    // Create user response without password
     const userResponse = user.toObject();
     delete userResponse.password;
 
@@ -158,12 +149,9 @@ app.post('/login', async (req, res) => {
   }
 });
 
-// [3] Create Turma - Completely safe version
 app.post('/api/turmas', async (req, res) => {
   try {
     const { name, type, number, createdBy } = req.body;
-    
-    // Validate all fields
     const missingFields = [];
     if (!name) missingFields.push('name');
     if (!type) missingFields.push('type');
@@ -185,7 +173,6 @@ app.post('/api/turmas', async (req, res) => {
       });
     }
 
-    // Find user by email only, no ID conversion
     const user = await User.findOne({ email: createdBy })
       .select('_id email name')
       .lean();
@@ -197,24 +184,21 @@ app.post('/api/turmas', async (req, res) => {
       });
     }
 
-    // Create turma with double reference (email and ID)
     const turmaData = {
       name,
       type,
       number,
       createdBy: user.email,
-      creatorId: user._id  // Storing both for redundancy
+      creatorId: user._id  
     };
 
     const newTurma = await Turma.create(turmaData);
 
-    // Update user's turmas array safely
     await User.updateOne(
       { _id: user._id },
       { $addToSet: { turmas: newTurma._id } }
     );
 
-    // Prepare response
     const response = {
       ...newTurma.toObject(),
       creator: {
@@ -248,12 +232,10 @@ app.post('/api/turmas', async (req, res) => {
   }
 });
 
-// [4] Get Turmas by User - 100% safe version
 app.get('/api/turmas/by-user/:identifier', async (req, res) => {
   try {
     const { identifier } = req.params;
 
-    // Determine if identifier is email or ID
     let query;
     if (validateEmail(identifier)) {
       query = { email: identifier };
@@ -267,7 +249,6 @@ app.get('/api/turmas/by-user/:identifier', async (req, res) => {
       });
     }
 
-    // Find user safely
     const user = await User.findOne(query)
       .select('turmas')
       .lean();
@@ -279,11 +260,10 @@ app.get('/api/turmas/by-user/:identifier', async (req, res) => {
       });
     }
 
-    // Get turmas using both possible reference methods
     const turmas = await Turma.find({
       $or: [
-        { _id: { $in: user.turmas || [] } }, // By reference
-        { createdBy: user.email }             // By email (backup)
+        { _id: { $in: user.turmas || [] } }, 
+        { createdBy: user.email }             
       ]
     }).sort({ createdAt: -1 });
 
@@ -302,7 +282,6 @@ app.get('/api/turmas/by-user/:identifier', async (req, res) => {
   }
 });
 
-// [5] Get All Turmas
 app.get('/api/turmas', async (req, res) => {
   try {
     const turmas = await Turma.find().sort({ createdAt: -1 });
@@ -322,10 +301,8 @@ app.get('/api/turmas', async (req, res) => {
   }
 });
 
-// [6] Database Health Check
 app.get('/api/health', async (req, res) => {
   try {
-    // Check database connection
     const dbState = mongoose.connection.readyState;
     if (dbState !== 1) {
       return res.status(503).json({
@@ -335,11 +312,9 @@ app.get('/api/health', async (req, res) => {
       });
     }
 
-    // Check collections
     const usersCount = await User.countDocuments();
     const turmasCount = await Turma.countDocuments();
 
-    // Find potential data issues
     const usersWithInvalidRefs = await User.countDocuments({
       turmas: { $exists: true, $not: { $type: 'array' } }
     });
@@ -366,16 +341,94 @@ app.get('/api/health', async (req, res) => {
   }
 });
 
-// [7] Frontend Route
 app.get('/', (req, res) => {
   res.sendFile(path.join(__dirname, 'Public', 'index.html'));
 });
 
-// Enhanced Error Handling Middleware
+app.put('/api/turmas/:id', async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { name, type, number } = req.body;
+    if (!validateObjectId(id)) {
+      return res.status(400).json({ success: false, error: 'Invalid turma ID' });
+    }
+    const updateFields = {};
+    if (name) updateFields.name = name;
+    if (type) updateFields.type = type;
+    if (number) updateFields.number = number;
+    const turma = await Turma.findByIdAndUpdate(id, updateFields, { new: true });
+    if (!turma) {
+      return res.status(404).json({ success: false, error: 'Turma not found' });
+    }
+    res.status(200).json({ success: true, message: 'Turma updated', turma });
+  } catch (error) {
+    console.error('Update turma error:', error);
+    res.status(500).json({ success: false, error: 'Failed to update turma' });
+  }
+});
+
+app.delete('/api/turmas/:id', async (req, res) => {
+  try {
+    const { id } = req.params;
+    if (!validateObjectId(id)) {
+      return res.status(400).json({ success: false, error: 'Invalid turma ID' });
+    }
+    const turma = await Turma.findByIdAndDelete(id);
+    if (!turma) {
+      return res.status(404).json({ success: false, error: 'Turma not found' });
+    }
+    await User.updateMany(
+      { turmas: id },
+      { $pull: { turmas: id } }
+    );
+    res.status(200).json({ success: true, message: 'Turma deleted' });
+  } catch (error) {
+    console.error('Delete turma error:', error);
+    res.status(500).json({ success: false, error: 'Failed to delete turma' });
+  }
+});
+
+app.get('/api/user/profile', async (req, res) => {
+  try {
+    const userEmail = req.query.email || 'default@example.com'; 
+    const user = await User.findOne({ email: userEmail }).select('-password');
+
+    if (!user) {
+      return res.status(404).json({ success: false, error: 'Usuário não encontrado' });
+    }
+
+    res.status(200).json(user);
+  } catch (error) {
+    console.error('Erro ao obter perfil do usuário:', error);
+    res.status(500).json({ success: false, error: 'Erro ao obter perfil do usuário' });
+  }
+});
+
+app.put('/api/user/profile', async (req, res) => {
+  try {
+    const userEmail = req.body.email || 'default@example.com'; 
+    const { name, image } = req.body;
+
+    const user = await User.findOneAndUpdate(
+      { email: userEmail },
+      { name, image },
+      { new: true, runValidators: true }
+    ).select('-password');
+
+    if (!user) {
+      return res.status(404).json({ success: false, error: 'Usuário não encontrado' });
+    }
+
+    res.status(200).json({ success: true, user });
+  } catch (error) {
+    console.error('Erro ao atualizar perfil do usuário:', error);
+    res.status(500).json({ success: false, error: 'Erro ao atualizar perfil do usuário' });
+  }
+});
+
 app.use((err, req, res, next) => {
   console.error('Global error handler:', err);
 
-  // Handle CastError specifically
   if (err.name === 'CastError' && err.path === '_id') {
     return res.status(400).json({
       success: false,
@@ -384,7 +437,6 @@ app.use((err, req, res, next) => {
     });
   }
 
-  // Generic error response
   res.status(500).json({
     success: false,
     error: 'Internal server error',
@@ -392,8 +444,7 @@ app.use((err, req, res, next) => {
   });
 });
 
-// Start Server
 app.listen(port, () => {
   console.log(`🚀 Server running at http://localhost:${port}`);
-  console.log(`📊 MongoDB connected: ${mongoose.connection.host}`);
+  console.log(`📊 MongoDB connected: ${toString(mongoose.connection.host)}`);
 });
