@@ -8,7 +8,6 @@ const toggleBtn = document.getElementById('toggleSidebar');
 const sidebar = document.getElementById('sidebar');
 const container = document.getElementById('mainContainer');
 
-// Sidebar Toggle
 toggleBtn.addEventListener('click', () => {
   sidebar.classList.add('active');
   container.classList.add('shifted');
@@ -23,7 +22,6 @@ document.addEventListener('click', (event) => {
   }
 });
 
-// Drag and Drop para bolas
 bolas.forEach(bola => {
   let offsetX, offsetY, isDragging = false;
 
@@ -51,7 +49,6 @@ bolas.forEach(bola => {
   });
 });
 
-// INCLUIR JOGADOR
 const btnIncluir = document.querySelector('.btn-incluir');
 const modal = document.getElementById('modalIncluir');
 const fecharModal = document.getElementById('fecharModal');
@@ -87,7 +84,6 @@ formIncluir.addEventListener('submit', (e) => {
   alert("Jogador adicionado com sucesso!");
 });
 
-// VISUALIZAR JOGADORES
 const btnVisualizar = document.querySelector('.btn-visualizar');
 const listaModal = document.getElementById('listaJogadores');
 const fecharLista = document.getElementById('fecharModalLista');
@@ -107,7 +103,6 @@ fecharLista.addEventListener('click', () => {
   listaModal.style.display = 'none';
 });
 
-// EDITAR JOGADOR
 const btnEditar = document.querySelector('.btn-editar');
 const modalEditar = document.getElementById('modalEditar');
 const fecharEditar = document.getElementById('fecharModalEditar');
@@ -137,7 +132,6 @@ formEditar.addEventListener('submit', (e) => {
   alert("Jogador atualizado com sucesso!");
 });
 
-// DELETAR JOGADOR
 const btnDeletar = document.querySelector('.btn-deletar');
 
 btnDeletar.addEventListener('click', () => {

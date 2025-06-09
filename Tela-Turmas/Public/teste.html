@@ -7,16 +7,15 @@
     <style>
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            margin: 0; /* Remover margem para garantir que a barra de menu ocupe toda a largura */
+            margin: 0; 
             background-color: #f4f4f4;
             color: #333;
             display: flex;
-            flex-direction: column; /* Para empilhar a barra de menu e o conteúdo */
-            min-height: 100vh; /* Garante que o body ocupe pelo menos a altura da tela */
+            flex-direction: column; 
+            min-height: 100vh; 
             box-sizing: border-box;
         }
 
-        /* Barra de menu fixa no topo */
         .menu-bar {
             position: fixed;
             top: 0;
@@ -26,13 +25,13 @@
             color: white;
             padding: 12px 20px;
             display: flex;
-            justify-content: flex-end; /* Coloca o conteúdo na parte direita */
+            justify-content: flex-end; 
             align-items: center;
-            z-index: 1000; /* Garante que a barra de menu fique acima de outros conteúdos */
+            z-index: 1000; 
         }
 
         .logout-button {
-            background-color: #90caf9; /* Vermelho */
+            background-color: #90caf9; 
             color: rgb(7, 7, 7);
             border: none;
             padding: 8px 12px;
@@ -45,7 +44,7 @@
             margin-right: 10px;
         }
         .suporte {
-            background-color: #90caf9; /* Vermelho */
+            background-color: #90caf9; 
             color: rgb(7, 7, 7);
             border: none;
             padding: 8px 12px;
@@ -58,7 +57,7 @@
             margin-right: 10px;
         }
         .criar-turma{
-            background-color: #90caf9; /* Vermelho */
+            background-color: #90caf9; 
             color: rgb(7, 7, 7);
             border: none;
             padding: 8px 12px;
@@ -75,19 +74,18 @@
           margin-right: 10px;
         }
         .criar-turma:hover {
-            background-color: #6798c0; /* Vermelho mais escuro no hover */
+            background-color: #6798c0; 
         }
         .suporte:hover {
-            background-color: #6798c0; /* Vermelho mais escuro no hover */
+            background-color: #6798c0; 
         }
 
         .logout-button:hover {
-            background-color: #d32f2f; /* Vermelho mais escuro no hover */
+            background-color: #d32f2f; 
         }
-
-        /* Espaçamento para o conteúdo não ficar sob a barra de menu */
+      
         .content {
-            margin-top: 60px; /* Ajuste para a altura da barra de menu */
+            margin-top: 60px; 
             display: flex;
             flex-wrap: wrap;
             justify-content: space-between;
@@ -100,8 +98,8 @@
             box-shadow: 0 0 15px rgba(0, 0, 0, 0.1);
             margin-bottom: 20px;
             padding: 15px;
-            width: calc(33.33% - 10px); /* Define a largura para um terço menos um pequeno espaço */
-            max-width: 400px; /* Ajusta a largura máxima conforme necessário */
+            width: calc(33.33% - 10px); 
+            max-width: 400px; 
             display: flex;
             flex-direction: column;
         }
@@ -125,7 +123,7 @@
             line-height: 1.6;
             color: #555;
         }
-        /* Modal escuro ao fundo */
+        
 .modal {
   display: none;
   position: fixed;
@@ -136,10 +134,9 @@
   height: 100%;
   overflow: auto;
   background: rgba(0, 0, 0, 0.5);
-  backdrop-filter: blur(3px); /* Suaviza o fundo */
+  backdrop-filter: blur(3px); 
 }
 
-/* Conteúdo do modal com estilo moderno */
 .modal-content {
   background: #ffffff;
   margin: 10% auto;
@@ -153,7 +150,6 @@
   position: relative;
 }
 
-/* Título */
 .modal-content h2 {
   margin-top: 0;
   color: #1565c0;
@@ -162,7 +158,6 @@
   padding-bottom: 8px;
 }
 
-/* Label */
 .modal-content label {
   font-weight: bold;
   margin-top: 15px;
@@ -170,7 +165,6 @@
   color: #333;
 }
 
-/* Select */
 .modal-content select {
   width: 100%;
   padding: 10px;
@@ -181,7 +175,6 @@
   background-color: #f9f9f9;
 }
 
-/* Botão de confirmar */
 .modal-content button {
   margin-top: 20px;
   width: 100%;
@@ -198,7 +191,6 @@
   background-color: #0d47a1;
 }
 
-/* Botão de fechar (X) */
 .close {
   position: absolute;
   top: 15px;
@@ -215,13 +207,13 @@
   
 
 
-        @media (max-width: 960px) { /* Ajuste para telas médias */
+        @media (max-width: 960px) { 
             .sport-block {
                 width: calc(50% - 10px);
             }
         }
 
-        @media (max-width: 600px) { /* Ajuste para telas pequenas */
+        @media (max-width: 600px) { 
             .sport-block {
                 width: calc(100% - 10px);
             }
@@ -234,9 +226,9 @@
   <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.6/dist/umd/popper.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.min.js"></script>
 
-    <!-- Barra de menu -->
+    
     <div class="menu-bar">
-      <!-- Barra de pesquisa -->
+      
 <div class="search-bar">
   <div class="input-group">
       <input type="text" class="form-control" placeholder="Pesquisar..." aria-label="Pesquisar">
@@ -250,7 +242,6 @@
         
     </div>
 
-    <!-- Conteúdo principal -->
     <div class="content">
         <div class="sport-block">
             <img src="https://static.historiadomundo.com.br/2024/06/homens-jogando-futebol-uma-alusao-a-historia-do-esporte-mais-popular-do-mundo.jpg" alt="Futebol" class="sport-image">
@@ -301,7 +292,6 @@
         </div>
     </div>
 
-    <!-- Modal para criar turma -->
 <div id="modalCriarTurma" class="modal">
     <div class="modal-content">
       <span class="close">&times;</span>
